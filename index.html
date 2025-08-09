@@ -2,19 +2,40 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Escape Room Timer</title>
+  <title>Escape Room Timer + Locks</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       text-align: center;
-      margin-top: 100px;
       background-color: #000;
       color: #fff;
+      padding: 40px;
     }
 
     #timer {
       font-size: 60px;
-      margin-top: 20px;
+      margin-bottom: 40px;
+    }
+
+    .lock {
+      margin: 20px auto;
+    }
+
+    input[type="text"] {
+      font-size: 18px;
+      padding: 8px;
+      width: 200px;
+      text-align: center;
+    }
+
+    .correct {
+      color: lime;
+    }
+
+    .all-correct {
+      font-size: 24px;
+      color: gold;
+      margin-top: 40px;
     }
   </style>
 </head>
@@ -22,15 +43,24 @@
   <h1>Escape Room Countdown</h1>
   <div id="timer">10:00</div>
 
-  <script>
-    let time = 600; // 10 minutes in seconds
+  <h2>Enter the codes to unlock:</h2>
 
+  <!-- 🔐 Lock Inputs -->
+  <div id="locks">
+    <!-- We'll dynamically add them via JavaScript -->
+  </div>
+
+  <div id="message" class="all-correct"></div>
+
+  <script>
+    // ⏱️ Timer Logic
+    let time = 600;
     function updateTimer() {
       const minutes = Math.floor(time / 60);
       const seconds = time % 60;
       document.getElementById("timer").textContent =
         `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-      
+
       if (time > 0) {
         time--;
         setTimeout(updateTimer, 1000);
@@ -38,8 +68,63 @@
         alert("Time's up!");
       }
     }
-
     updateTimer();
+
+    // 🔐 Digital Locks Logic
+    const lockData = [
+      { label: "3-digit Lock #1", answer: "123" },
+      { label: "3-digit Lock #2", answer: "789" },
+      { label: "4-digit Lock #3", answer: "2025" },
+      { label: "4-digit Lock #4", answer: "4567" },
+      { label: "5-digit Lock #5", answer: "A1B2C" },
+      { label: "5-digit Lock #6", answer: "Z9Y8X" },
+      { label: "3-digit Lock #7", answer: "321" },
+      { label: "4-digit Lock #8", answer: "9999" },
+      { label: "5-digit Lock #9", answer: "5X3Y2" },
+      { label: "4-digit Lock #10", answer: "1111" }
+    ];
+
+    const locksContainer = document.getElementById("locks");
+
+    function createLock(index, label, answer) {
+      const div = document.createElement("div");
+      div.className = "lock";
+      div.innerHTML = `
+        <label>${label}:</label><br>
+        <input type="text" id="lock${index}" placeholder="Enter code" oninput="checkLock(${index})">
+        <span id="status${index}"></span>
+      `;
+      locksContainer.appendChild(div);
+    }
+
+    lockData.forEach((lock, i) => createLock(i, lock.label, lock.answer));
+
+    function checkLock(index) {
+      const input = document.getElementById(`lock${index}`);
+      const status = document.getElementById(`status${index}`);
+      const correctAnswer = lockData[index].answer;
+
+      if (input.value.toUpperCase() === correctAnswer.toUpperCase()) {
+        status.textContent = " ✅";
+        status.className = "correct";
+        input.disabled = true;
+        checkAllSolved();
+      } else {
+        status.textContent = "";
+      }
+    }
+
+    function checkAllSolved() {
+      const allCorrect = lockData.every((lock, i) => {
+        const input = document.getElementById(`lock${i}`);
+        return input.value.toUpperCase() === lock.answer.toUpperCase();
+      });
+
+      if (allCorrect) {
+        document.getElementById("message").textContent = "🎉 All locks unlocked!";
+      }
+    }
   </script>
 </body>
 </html>
+
