@@ -102,6 +102,7 @@
   <script>
     let time = 600; // 10 minutes
     let timerStarted = false;
+    let flashInterval = null;
 
     const lockData = [
       { label: "3-digit Lock #1", answer: "123", clue: "🧩 Clue 1: Look under the table." },
@@ -159,59 +160,65 @@
     }
 
     function updateTimer() {
-      const minutes = Math.floor(time / 60);
-      const seconds = time % 60;
       const timerDisplay = document.getElementById("timer");
 
-      // Update text
-      timerDisplay.textContent =
-        `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-
-      // Timer color logic
-      if (time <= 60) {
-        timerDisplay.style.color = "red";
-      } else if (time <= 300) {
-        timerDisplay.style.color = "yellow";
-      } else {
-        timerDisplay.style.color = "white";
+      function formatTime() {
+        const minutes = Math.floor(time / 60);
+        const seconds = time % 60;
+        return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
       }
 
-      // Flash in final 10 seconds
-      if (time <= 10) {
-        timerDisplay.style.visibility = (time % 2 === 0) ? 'visible' : 'hidden';
-      } else {
-        timerDisplay.style.visibility = 'visible';
+      function setTimerStyle() {
+        if (time <= 60) {
+          timerDisplay.style.color = "red";
+        } else if (time <= 300) {
+          timerDisplay.style.color = "yellow";
+        } else {
+          timerDisplay.style.color = "white";
+        }
       }
 
-      // Pulse at full minutes (except at 0:00)
-      if (seconds === 0 && time !== 0) {
-        timerDisplay.classList.add("pulse");
-        setTimeout(() => {
-          timerDisplay.classList.remove("pulse");
-        }, 1000);
+      function tick() {
+        timerDisplay.textContent = formatTime();
+        setTimerStyle();
+
+        // Pulse on each full minute (not 0)
+        if (time % 60 === 0 && time !== 0) {
+          timerDisplay.classList.add("pulse");
+          setTimeout(() => {
+            timerDisplay.classList.remove("pulse");
+          }, 1000);
+        }
+
+        // Start flashing every 0.5s for last 10 seconds
+        if (time === 10 && !flashInterval) {
+          flashInterval = setInterval(() => {
+            timerDisplay.style.visibility = (timerDisplay.style.visibility === 'hidden') ? 'visible' : 'hidden';
+          }, 500);
+        }
+
+        if (time === 0) {
+          clearInterval(flashInterval);
+          timerDisplay.style.visibility = 'visible';
+          alert("⏰ Time's up!");
+        } else {
+          time--;
+          setTimeout(tick, 1000);
+        }
       }
 
-      if (time > 0) {
-        time--;
-        setTimeout(updateTimer, 1000);
-      } else {
-        timerDisplay.style.visibility = 'visible';
-        alert("⏰ Time's up!");
-      }
+      tick(); // begin timer loop
     }
 
     function startGame() {
       if (!timerStarted) {
         timerStarted = true;
 
-        // Hide start screen, show game area
         document.getElementById("start-screen").style.display = "none";
         document.getElementById("game-area").style.display = "block";
 
-        // Create lock inputs
         lockData.forEach((lock, i) => createLock(i, lock.label, lock.clue));
 
-        // Start the timer
         updateTimer();
       }
     }
