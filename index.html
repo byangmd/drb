@@ -16,7 +16,7 @@
       font-size: 60px;
       margin-bottom: 40px;
       color: white;
-      transition: color 0.5s;
+      transition: color 0.5s, transform 0.5s;
     }
 
     .lock {
@@ -67,6 +67,16 @@
 
     button:hover {
       background-color: #0056b3;
+    }
+
+    @keyframes pulse {
+      0%   { transform: scale(1); }
+      50%  { transform: scale(1.5); }
+      100% { transform: scale(1); }
+    }
+
+    .pulse {
+      animation: pulse 1s ease-in-out;
     }
   </style>
 </head>
@@ -153,20 +163,39 @@
       const seconds = time % 60;
       const timerDisplay = document.getElementById("timer");
 
+      // Update text
       timerDisplay.textContent =
         `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 
-      // Change color based on time left
+      // Timer color logic
       if (time <= 60) {
         timerDisplay.style.color = "red";
       } else if (time <= 300) {
         timerDisplay.style.color = "yellow";
+      } else {
+        timerDisplay.style.color = "white";
+      }
+
+      // Flash in final 10 seconds
+      if (time <= 10) {
+        timerDisplay.style.visibility = (time % 2 === 0) ? 'visible' : 'hidden';
+      } else {
+        timerDisplay.style.visibility = 'visible';
+      }
+
+      // Pulse at full minutes (except at 0:00)
+      if (seconds === 0 && time !== 0) {
+        timerDisplay.classList.add("pulse");
+        setTimeout(() => {
+          timerDisplay.classList.remove("pulse");
+        }, 1000);
       }
 
       if (time > 0) {
         time--;
         setTimeout(updateTimer, 1000);
       } else {
+        timerDisplay.style.visibility = 'visible';
         alert("⏰ Time's up!");
       }
     }
@@ -179,10 +208,10 @@
         document.getElementById("start-screen").style.display = "none";
         document.getElementById("game-area").style.display = "block";
 
-        // Build locks
+        // Create lock inputs
         lockData.forEach((lock, i) => createLock(i, lock.label, lock.clue));
 
-        // Start timer
+        // Start the timer
         updateTimer();
       }
     }
