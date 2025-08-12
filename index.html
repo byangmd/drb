@@ -115,7 +115,7 @@
       { label: "7-digit Lock #7", answer: "BREATHE", clue: "🧩 Clue 7: GOLD3 Severe FEV1 range." },
       { label: "7-digit Lock #8", answer: "ICANNOT", clue: "🧩 Clue 8: Almost There" },
       { label: "4-digit Lock #9", answer: "3050", clue: "🧩 Clue 9: Duration of antibiotcs for Acute COPD Exac." },
-      { label: "2-digit Lock #10", answer: "57", clue: "🧩 Clue 10: YOU CAN BREATHE (BETTER) NOW." }
+      { label: "2-digit Lock #10", answer: "57", clue: "🧩 Clue 10: No more clues." }
     ];
 
     const locksContainer = document.getElementById("locks");
@@ -158,7 +158,7 @@
 
       if (allCorrect) {
         document.getElementById("message").textContent =
-          "🎉 All locks unlocked!";
+          "🎉 All locks unlocked!  You Can BREATHE (BETTER) NOW!";
 
         clearTimeout(timerID); // Stop countdown
 
