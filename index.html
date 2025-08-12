@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Escape Room Timer + Locks</title>
   <style>
     body {
@@ -100,9 +100,10 @@
   </div>
 
   <script>
-    let time = 600; // 10 minutes
+    let time = 600; // 10 minutes in seconds
     let timerStarted = false;
     let flashInterval = null;
+    let timerID = null;
 
     const lockData = [
       { label: "3-digit Lock #1", answer: "123", clue: "🧩 Clue 1: Look under the table." },
@@ -112,9 +113,9 @@
       { label: "5-digit Lock #5", answer: "A1B2C", clue: "🧩 Clue 5: Not all labs are normal." },
       { label: "5-digit Lock #6", answer: "Z9Y8X", clue: "🧩 Clue 6: Look inside the medication drawer." },
       { label: "3-digit Lock #7", answer: "321", clue: "🧩 Clue 7: The patient file has notes." },
-      { label: "4-digit Lock #8", answer: "9999", clue: "🧩 Clue 8: What's hidden in plain sight?" },
-      { label: "5-digit Lock #9", answer: "5X3Y2", clue: "🧩 Clue 9: Look behind the curtain." },
-      { label: "4-digit Lock #10", answer: "1111", clue: "🧩 Clue 10: Oxygen tank label might matter." }
+      { label: "1-digit Lock #8", answer: "I", clue: "🧩 Clue 8: What's hidden in plain sight?" },
+      { label: "6-digit Lock #9", answer: "CANNOT", clue: "🧩 Clue 9: Look behind the curtain." },
+      { label: "7-digit Lock #10", answer: "BREATHE", clue: "🧩 Clue 10: Oxygen tank label might matter." }
     ];
 
     const locksContainer = document.getElementById("locks");
@@ -123,8 +124,8 @@
       const div = document.createElement("div");
       div.className = "lock";
       div.innerHTML = `
-        <label>${label}:</label><br>
-        <input type="text" id="lock${index}" placeholder="Enter code" oninput="checkLock(${index})">
+        <label for="lock${index}">${label}:</label><br>
+        <input type="text" id="lock${index}" placeholder="Enter code" oninput="checkLock(${index})" autocomplete="off" />
         <span id="status${index}"></span>
         <div id="clue${index}" class="clue">${clueText}</div>
       `;
@@ -135,9 +136,10 @@
       const input = document.getElementById(`lock${index}`);
       const status = document.getElementById(`status${index}`);
       const clue = document.getElementById(`clue${index}`);
-      const correctAnswer = lockData[index].answer;
+      const correctAnswer = lockData[index].answer.trim().toUpperCase();
+      const playerAnswer = input.value.trim().toUpperCase();
 
-      if (input.value.toUpperCase() === correctAnswer.toUpperCase()) {
+      if (playerAnswer === correctAnswer) {
         status.textContent = " ✅";
         status.className = "correct";
         clue.style.display = "block";
@@ -151,11 +153,36 @@
     function checkAllSolved() {
       const allCorrect = lockData.every((lock, i) => {
         const input = document.getElementById(`lock${i}`);
-        return input.value.toUpperCase() === lock.answer.toUpperCase();
+        return input.value.trim().toUpperCase() === lock.answer.trim().toUpperCase();
       });
 
       if (allCorrect) {
-        document.getElementById("message").textContent = "🎉 All locks unlocked! Proceed to the final puzzle.";
+        document.getElementById("message").textContent =
+          "🎉 All locks unlocked! Proceed to the final puzzle.";
+
+        clearTimeout(timerID); // Stop countdown
+
+        const timerDisplay = document.getElementById("timer");
+        const finalTime = timerDisplay.textContent; // Capture time left (MM:SS)
+
+        // Set ESCAPED! + Time
+        timerDisplay.style.color = "lime";
+        timerDisplay.textContent = `ESCAPED! (${finalTime} left)`;
+
+        // Flash for 10 seconds
+        let flashCount = 0;
+        const flashInterval = setInterval(() => {
+          timerDisplay.style.visibility =
+            timerDisplay.style.visibility === "hidden" ? "visible" : "hidden";
+          flashCount++;
+
+          if (flashCount >= 20) { // 20 * 500ms = 10 seconds
+            clearInterval(flashInterval);
+            timerDisplay.style.visibility = "visible"; // solid
+            timerDisplay.textContent = `ESCAPED! (${finalTime} left)`;
+            timerDisplay.style.color = "lime";
+          }
+        }, 500);
       }
     }
 
@@ -193,7 +220,8 @@
         // Start flashing every 0.5s for last 10 seconds
         if (time === 10 && !flashInterval) {
           flashInterval = setInterval(() => {
-            timerDisplay.style.visibility = (timerDisplay.style.visibility === 'hidden') ? 'visible' : 'hidden';
+            timerDisplay.style.visibility =
+              timerDisplay.style.visibility === 'hidden' ? 'visible' : 'hidden';
           }, 500);
         }
 
@@ -203,7 +231,7 @@
           alert("⏰ Time's up!");
         } else {
           time--;
-          setTimeout(tick, 1000);
+          timerID = setTimeout(tick, 1000);
         }
       }
 
